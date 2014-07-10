@@ -23,8 +23,15 @@
     return instance;
 }
 
-- (void) connectToHost:(NSString*)host port:(int)port username:(NSString*)username0 password:(NSString*)password0 timeout:(NSTimeInterval)timeout0 {
-    serverUrl = [NSString stringWithFormat:@"wss://%@:%i", host, port];
+- (void) connectToHost:(NSString*)host port:(int)port {
+    [self connectToHost:host port:port username:nil password:nil timeout:3 secure:NO];
+}
+
+- (void) connectToHost:(NSString*)host port:(int)port username:(NSString*)username0 password:(NSString*)password0 timeout:(NSTimeInterval)timeout0 secure:(BOOL)secure {
+    NSString* pathPattern = @"ws://%@:%i";
+    if(secure)
+        pathPattern = @"wss://%@:%i";
+    serverUrl = [NSString stringWithFormat:pathPattern, host, port];
     username = username0;
     password = password0;
     timeout = timeout0;
