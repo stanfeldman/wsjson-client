@@ -11,6 +11,7 @@
     NSString* password;
     NSTimeInterval timeout;
     NSTimer* timeoutTimer;
+    NSString* cert;
 }
 
 + (WsJsonClient*) sharedInstance {
@@ -24,10 +25,11 @@
 }
 
 - (void) connectToHost:(NSString*)host port:(int)port {
-    [self connectToHost:host port:port username:nil password:nil timeout:3 secure:NO];
+    [self connectToHost:host port:port username:nil password:nil timeout:3 secure:NO cert:nil];
 }
 
-- (void) connectToHost:(NSString*)host port:(int)port username:(NSString*)username0 password:(NSString*)password0 timeout:(NSTimeInterval)timeout0 secure:(BOOL)secure {
+// cert is der certificate name in project
+- (void) connectToHost:(NSString*)host port:(int)port username:(NSString*)username0 password:(NSString*)password0 timeout:(NSTimeInterval)timeout0 secure:(BOOL)secure cert:(NSString*)certName {
     NSString* pathPattern = @"ws://%@:%i";
     if(secure)
         pathPattern = @"wss://%@:%i";
@@ -35,6 +37,7 @@
     username = username0;
     password = password0;
     timeout = timeout0;
+    cert = certName;
     [self reconnect];
 }
 
@@ -147,7 +150,13 @@
 - (void) reconnect {
     socket.delegate = nil;
     [socket close];
-    socket = [[SRWebSocket alloc] initWithURL:[NSURL URLWithString:serverUrl]];
+    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverUrl]];
+    if(cert) {
+        NSData* certData = [[NSData alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:cert ofType:@"der"]];
+        SecCertificateRef certificate = SecCertificateCreateWithData(NULL, (__bridge CFDataRef)certData);
+        request.SR_SSLPinnedCertificates = @[(__bridge id)certificate];
+    }
+    socket = [[SRWebSocket alloc] initWithURLRequest:request];
     socket.delegate = self;
     NSDate* futureDate = [NSDate dateWithTimeIntervalSinceNow:timeout];
     timeoutTimer = [[NSTimer alloc] initWithFireDate:futureDate interval:0 target:self selector:@selector(didTimeout) userInfo:nil repeats:NO];
