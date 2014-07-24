@@ -81,6 +81,7 @@
         WSJsonErrback errback = [errbacks valueForKey:url];
         if(errback) {
             errback(errorMsg);
+            [callbacks removeObjectForKey:url];
             [errbacks removeObjectForKey:url];
         }
         // нужно ли посылать уведомление об ошибке?
@@ -90,6 +91,7 @@
         if(callback) {
             callback(json);
             [callbacks removeObjectForKey:url];
+            [errbacks removeObjectForKey:url];
         }
         else
             [[NSNotificationCenter defaultCenter] postNotificationName:url object:json];
