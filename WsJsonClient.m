@@ -1,4 +1,5 @@
 #import "WsJsonClient.h"
+#import "DDLog.h"
 
 @implementation WsJsonClient {
     SRWebSocket* socket;
@@ -99,27 +100,28 @@
 }
 
 - (void)webSocket:(SRWebSocket *)webSocket didFailWithError:(NSError *)error {
-    NSLog(@"error %@", error.userInfo);
+    DDLogError(@"websocket connection error");
     [self cancelTimeoutTimer];
     connected = NO;
     [self onError];
 }
 
 - (void)webSocketDidOpen:(SRWebSocket *)webSocket {
-    NSLog(@"connected");
+    DDLogInfo(@"websocket connected to %@", webSocket.url);
     [self cancelTimeoutTimer];
     connected = YES;
     [self resendQueue];
 }
 
 - (void)webSocket:(SRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean {
-    NSLog(@"disconnected %i %@", code, reason);
+    DDLogInfo(@"websocket disconnected %i %@", code, reason);
     connected = NO;
     [self onError];
 }
 
 - (void) didTimeout {
     [self cancelTimeoutTimer];
+    DDLogError(@"websocket connection timed out");
     [self webSocket:socket didFailWithError:[NSError errorWithDomain:@"ru.limehat.ios.intelsound" code:5 userInfo:@{NSLocalizedDescriptionKey:@"connection timed out"}]];
 }
 
