@@ -103,6 +103,7 @@
     DDLogError(@"websocket connection error");
     [self cancelTimeoutTimer];
     connected = NO;
+    [[NSNotificationCenter defaultCenter] postNotificationName:WSJSON_CONNECTION_ERROR object:nil];
     [self onError];
 }
 
@@ -110,12 +111,14 @@
     DDLogInfo(@"websocket connected to %@", webSocket.url);
     [self cancelTimeoutTimer];
     connected = YES;
+    [[NSNotificationCenter defaultCenter] postNotificationName:WSJSON_CONNECTED object:nil];
     [self resendQueue];
 }
 
 - (void)webSocket:(SRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean {
-    DDLogInfo(@"websocket disconnected %i %@", code, reason);
+    DDLogInfo(@"websocket disconnected from %@", webSocket.url);
     connected = NO;
+    [[NSNotificationCenter defaultCenter] postNotificationName:WSJSON_DISCONNECTED object:nil];
     [self onError];
 }
 
@@ -126,6 +129,8 @@
 }
 
 - (void) cancelTimeoutTimer {
+    if(!timeoutTimer)
+        return;
     [timeoutTimer invalidate];
     timeoutTimer = nil;
 }
@@ -146,7 +151,7 @@
     }
     [errbacks removeAllObjects];
     // как только пропало соединение пытаемся его восстановить
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         [self reconnect];
     });
 }
@@ -154,6 +159,7 @@
 - (void) reconnect {
     socket.delegate = nil;
     [socket close];
+    [self cancelTimeoutTimer];
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:serverUrl]];
     if(cert) {
         NSData* certData = [[NSData alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:cert ofType:@"der"]];

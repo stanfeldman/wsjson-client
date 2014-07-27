@@ -3,6 +3,10 @@
 typedef void (^WsJsonCallback)(NSDictionary* data);
 typedef void (^WSJsonErrback)(NSString* message);
 
+#define WSJSON_CONNECTED @"wsjson_connected"
+#define WSJSON_DISCONNECTED @"wsjson_disconnected"
+#define WSJSON_CONNECTION_ERROR @"wsjson_connection_error"
+
 @interface WsJsonClient : NSObject<SRWebSocketDelegate>
 
 + (WsJsonClient*) sharedInstance;
