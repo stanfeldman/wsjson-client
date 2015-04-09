@@ -78,20 +78,22 @@
     NSNumber* success = [json valueForKey:@"success"];
     if(![success isEqualToNumber:@YES]) {
         NSString* errorMsg = [json valueForKey:@"error"];
+        if(!errorMsg)
+            errorMsg = @"Сервер не отвечает";
         WSJsonErrback errback = [errbacks valueForKey:url];
         if(errback) {
-            errback(errorMsg);
             [callbacks removeObjectForKey:url];
             [errbacks removeObjectForKey:url];
+            errback(errorMsg);
         }
         // нужно ли посылать уведомление об ошибке?
     }
     else {
         WsJsonCallback callback = [callbacks valueForKey:url];
         if(callback) {
-            callback(json);
             [callbacks removeObjectForKey:url];
             [errbacks removeObjectForKey:url];
+            callback(json);
         }
         else
             [[NSNotificationCenter defaultCenter] postNotificationName:url object:json];
