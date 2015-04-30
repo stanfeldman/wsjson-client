@@ -7,8 +7,7 @@
     NSMutableArray* requestsQueue;
     NSMutableDictionary* callbacks;
     NSMutableDictionary* errbacks;
-    NSString* username;
-    NSString* password;
+    NSString* apiKey;
     NSTimeInterval timeout;
     NSTimer* timeoutTimer;
     NSString* cert;
@@ -25,17 +24,16 @@
 }
 
 - (void) connectToHost:(NSString*)host port:(int)port {
-    [self connectToHost:host port:port username:nil password:nil timeout:3 secure:NO cert:nil];
+    [self connectToHost:host port:port apiKey:nil timeout:3 secure:NO cert:nil];
 }
 
 // cert is der certificate name in project
-- (void) connectToHost:(NSString*)host port:(int)port username:(NSString*)username0 password:(NSString*)password0 timeout:(NSTimeInterval)timeout0 secure:(BOOL)secure cert:(NSString*)certName {
+- (void) connectToHost:(NSString*)host port:(int)port apiKey:(NSString*)apiKey0 timeout:(NSTimeInterval)timeout0 secure:(BOOL)secure cert:(NSString*)certName {
     NSString* pathPattern = @"ws://%@:%i";
     if(secure)
         pathPattern = @"wss://%@:%i";
     serverUrl = [NSString stringWithFormat:pathPattern, host, port];
-    username = username0;
-    password = password0;
+    apiKey = apiKey0;
     timeout = timeout0;
     cert = certName;
     [self reconnect];
@@ -52,8 +50,8 @@
     else
         result = [NSMutableDictionary new];
     [result setValue:url forKey:@"url"];
-    if(username && password)
-        [result setValue:@{@"username":username, @"password": password} forKey:@"auth"];
+    if(apiKey)
+        [result setValue:apiKey forKey:@"api_key"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:result options:0 error:nil];
     if (!jsonData) {
         if(errback)
