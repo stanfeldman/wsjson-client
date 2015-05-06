@@ -167,9 +167,10 @@
     }
     socket = [[SRWebSocket alloc] initWithURLRequest:request];
     socket.delegate = self;
-    NSDate* futureDate = [NSDate dateWithTimeIntervalSinceNow:timeout];
-    timeoutTimer = [[NSTimer alloc] initWithFireDate:futureDate interval:0 target:self selector:@selector(didTimeout) userInfo:nil repeats:NO];
-    [[NSRunLoop SR_networkRunLoop] addTimer:timeoutTimer forMode:NSDefaultRunLoopMode];
+//    NSDate* futureDate = [NSDate dateWithTimeIntervalSinceNow:timeout];
+//    timeoutTimer = [[NSTimer alloc] initWithFireDate:futureDate interval:0 target:self selector:@selector(didTimeout) userInfo:nil repeats:NO];
+    timeoutTimer = [NSTimer timerWithTimeInterval:timeout target:self selector:@selector(didTimeout) userInfo:nil repeats:NO];
+//    [[NSRunLoop SR_networkRunLoop] addTimer:timeoutTimer forMode:NSDefaultRunLoopMode];
     [socket open];
 }
 
