@@ -11,6 +11,7 @@
     NSTimeInterval timeout;
     NSTimer* timeoutTimer;
     NSString* cert;
+    BOOL needResend;
 }
 
 + (WsJsonClient*) sharedInstance {
@@ -24,11 +25,11 @@
 }
 
 - (void) connectToHost:(NSString*)host port:(int)port {
-    [self connectToHost:host port:port apiKey:nil timeout:3 secure:NO cert:nil];
+    [self connectToHost:host port:port apiKey:nil timeout:3 resend:YES secure:NO cert:nil];
 }
 
 // cert is der certificate name in project
-- (void) connectToHost:(NSString*)host port:(int)port apiKey:(NSString*)apiKey0 timeout:(NSTimeInterval)timeout0 secure:(BOOL)secure cert:(NSString*)certName {
+- (void) connectToHost:(NSString*)host port:(int)port apiKey:(NSString*)apiKey0 timeout:(NSTimeInterval)timeout0 resend:(BOOL)needResend0 secure:(BOOL)secure cert:(NSString*)certName {
     NSString* pathPattern = @"ws://%@:%i";
     if(secure)
         pathPattern = @"wss://%@:%i";
@@ -111,7 +112,8 @@
     [self cancelTimeoutTimer];
     connected = YES;
     [[NSNotificationCenter defaultCenter] postNotificationName:WSJSON_CONNECTED object:nil];
-    [self resendQueue];
+    if(needResend)
+        [self resendQueue];
 }
 
 - (void)webSocket:(SRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean {
